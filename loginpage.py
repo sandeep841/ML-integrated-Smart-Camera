@@ -1,54 +1,95 @@
-from tkinter import *
-from functools import partial
-import os
+import tkinter as tk
+from tkinter import Label, Entry, Button
+import subprocess
 
-
-# Window
-tkWindow = Tk()  
-tkWindow.geometry('1204x740')  
-tkWindow.title('ML Intergrated Smart Camera')
-
-def validateLogin(username, password):
-        print("username entered :", username.get())
-        print("password entered :", password.get())
-        uname = username.get()
-        upass = password.get()
-        if(uname  == "admin" and upass=="admin"):
-                print("login Successful")
-                txt = Label(tkWindow, text="login Successful").place(x=0, y=300)
-                os.system('python face_detection.py')
-                tkWindow.quit()
-                tkWindow.destroy()
-        else:
-                print("login Failed")
-                txt = Label(tkWindow, text="login Failed").place(x=0, y=300)
-        return
-
-
-
-font = ('times', 16, 'bold')
-title = Label(tkWindow, text='ML Intergrated Smart Camera')
-title.config(bg='darkviolet', fg='gold')  
-title.config(font=font)           
-title.config(height=3, width=120)       
-title.place(x=0,y=5)
+class LoginPage(tk.Frame):
     
-# Username label and text entry box
-usernameLabel = Label(tkWindow, text="User Name").place(x=0, y=150)
-username = StringVar()
-usernameEntry = Entry(tkWindow, textvariable=username).place(x=100, y=150)  
+    def __init__(self, master):
+        super().__init__(master)
 
-# Password label and password entry box
-passwordLabel = Label(tkWindow,text="Password").place(x=0, y=200)
-password = StringVar()
-passwordEntry = Entry(tkWindow, textvariable=password, show='*').place(x=100, y=200)    
+        # Create a header frame with a blue background
+        self.header_frame = tk.Frame(self, bg="blue")
+        self.header_frame.pack(fill="x")
 
-validateLogin = partial(validateLogin, username, password)
+        # Create a title label within the header frame
+        self.title_label = Label(self.header_frame, text="ML Integrated Smart Camera", font=("Helvetica", 36), fg="white", bg="blue")
+        self.title_label.pack(pady=20)
 
-# Login button
-loginButton = Button(tkWindow, text="Login", command=validateLogin).place(x=50, y=250)  
+        # Create a frame for the labels and fields on the login page
+        self.label_frame = tk.Frame(self)
+        self.label_frame.pack(pady=20, padx=20, anchor="w")
 
-CloseButton = Button(tkWindow, text="Close", command=tkWindow.destroy).place(x=100, y=250) 
+        # Create username label and entry
+        self.username_label = Label(self.label_frame, text="Username:", font=("Helvetica", 24))
+        self.username_label.grid(row=0, column=0, padx=20, pady=10, sticky="w")
+        self.username_entry = Entry(self.label_frame, font=("Helvetica", 24), width=20)
+        self.username_entry.grid(row=0, column=1, padx=20, pady=10, sticky="w")
 
-tkWindow.mainloop()
+        # Create password label and entry with a toggle button
+        self.password_label = Label(self.label_frame, text="Password:", font=("Helvetica", 24))
+        self.password_label.grid(row=1, column=0, padx=20, pady=10, sticky="w")
+        self.password_entry = Entry(self.label_frame, show="*", font=("Helvetica", 24), width=20)
+        self.password_entry.grid(row=1, column=1, padx=20, pady=10, sticky="w")
 
+        self.toggle_button = Button(self.label_frame, text="Show Password", command=self.toggle_password, font=("Helvetica", 15))
+        self.toggle_button.grid(row=1, column=3, padx=2, pady=10, sticky="w")
+
+        self.login_button = Button(self.label_frame, text="Login", command=self.switch_to_home_page, font=("Helvetica", 24))
+        self.login_button.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+
+        self.close_button = Button(self.label_frame, text="Close", command=self.close, font=("Helvetica", 24))
+        self.close_button.grid(row=2, column=1, padx=150, pady=10, sticky="w")
+
+        # Create a label for status messages
+        self.status_label = Label(self, text="", font=("Helvetica", 24))
+        self.status_label.pack(pady=20)
+    
+    
+
+    def toggle_password(self):
+        if self.password_entry.cget("show") == "":
+            self.password_entry.config(show="*")
+        else:
+            self.password_entry.config(show="")
+
+    def close(self):
+        self.master.destroy()
+
+    def switch_to_home_page(self):
+        if self.validate_credentials():
+            self.master.destroy()
+
+            subprocess.Popen(['python', 'home_page.py']),
+            subprocess.Popen(['python', 'face_detection.py']),
+            subprocess.Popen(['python', 'face_recog.py'])
+            
+
+    # Add your credential validation logic here
+    def validate_credentials(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        # Check if the username and password are correct
+        if username == "admin" and password == "admin":
+            # log.log_event("  login successfull")
+            return True
+        else:
+            # If the credentials are incorrect, display a message in the status_label
+            self.status_label.config(text="Invalid credentials. Please try again.", fg="red")
+            # log.log_event("   Failed login")
+            return False
+
+# Run the login page as a standalone application
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("ML Integrated Smart Camera - Login")
+
+    # Set the window size to be full-sized
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.geometry(f"{screen_width}x{screen_height}")
+
+    login_page = LoginPage(root)
+    login_page.pack(fill="both", expand=True)
+
+    root.mainloop()
