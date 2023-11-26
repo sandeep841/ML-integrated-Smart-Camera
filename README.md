@@ -1,1 +1,1 @@
-# ML-integrated-Smart-Camera
+# ML-Integrated-Smart-Camera
